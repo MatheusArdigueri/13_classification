@@ -821,7 +821,7 @@ variable into categorical\
 - Used **iterative search** to find the best values for mas_depth and
 min_criterion\
 - Used 5-fold cross validation as the resampling method\
-- Used both accuracy and roc_auc as the metrics to select best model\
+- Used both accuracy and roc_auc as the metrics to select best model\ # Observe this for finals (those are different than regression).
 - Once final model was determined, used it to predict **test set**\
 - Evaluated it with confusion matrix, accuracy and roc, roc_auc metrics,
 and variable importance
