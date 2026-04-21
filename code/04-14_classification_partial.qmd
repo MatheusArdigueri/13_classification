@@ -652,24 +652,33 @@ final_fit %>%
 Confusion matrix on **test set**:
 
 ```{r}
-
+final_fit %>%
+  collect_predictions() %>%
+  conf_mat(truth = strength_gtex_class,
+           estimate = .pred_class) %>%
+  autoplot(type = "heatmap")
   
 ```
 
 Metrics on the **test set**:
 
 ```{r}
-
+final_fit %>%
+  collect_metrics()
 ```
 
 Let's hand-calculate accuracy:
 
 ```{r}
 #  Numerator: number of correctly classified (the diagonal)
-numerator 
+numerator <- 39 + 33 + 32
 
 # Denominator: number of all observations  
-denominator 
+denominator <- 39 + 20 + 13 +
+  26 + 33 + 25 +
+  6 + 17 + 32
+
+numerator / denominator
 
 ```
 
@@ -679,12 +688,13 @@ Let's plot ROC on **test set**:
 final_fit %>%
   collect_predictions(parameters = best_roc) %>% 
   roc_curve(strength_gtex_class, 
-            .pred_Low,
-            .pred_Medium,
-            .pred_High) %>%
-ggplot(aes(x = ..., 
-           y = ..., 
-           color = ...)) +
+            .pred_low
+,
+            .pred_medium,
+            .pred_high) %>%
+ggplot(aes(x =  1 - specificity,  ## REMEMBER FOR EXAM 
+           y = sensitivity, 
+           color = .level)) +
   geom_line(size = 1.2) +
   geom_abline(linetype = "dashed") +
   coord_equal() +
@@ -697,6 +707,7 @@ ggplot(aes(x = ...,
 
   
 ```
+The model is doing better than random, but doing better for low class of predictions.
 
 ### Train set
 
@@ -711,7 +722,8 @@ final_spec %>%
                           weather_train)) %>%
   conf_mat(truth = strength_gtex_class,
            estimate = .pred_class
-          )
+          ) %>%
+  autoplot(type = "heatmap")
   
 ```
 
@@ -723,7 +735,10 @@ final_spec %>%
       data = bake(weather_prep, 
                   weather_train)) %>%
   augment(new_data = bake(weather_prep, 
-                          weather_train)) 
+                          weather_train)) %>%
+  accuracy(truth = strength_gtex_class, 
+           estimate = .pred_class)
+  # We can observ 100% Accuracy here as all values on our matrix are on diagonal.
 
 ```
 
@@ -738,9 +753,9 @@ final_spec %>%
   augment(new_data = bake(weather_prep, 
                           weather_train)) %>% 
   roc_curve(strength_gtex_class, 
-            .pred_Low,
-            .pred_Medium,
-            .pred_High) %>%
+            .pred_low,
+            .pred_medium,
+            .pred_high) %>%
 ggplot(aes(x = 1 - specificity, 
            y = sensitivity, 
            color = .level)) +
@@ -756,6 +771,7 @@ ggplot(aes(x = 1 - specificity,
 
   
 ```
+# This is the comportment of a perfect model, so the area under ROC is 1.  All classes overlap.
 
 ### Variable importance
 
@@ -775,7 +791,7 @@ considered **most important**.
 
 ```{r}
 final_spec %>%
-  fit(... ~ .,
+  fit(strength_gtex_class ~ .,
          data = bake(weather_prep, 
                      weather_train)) %>%
     vi() %>%
